@@ -28,7 +28,7 @@ public class PassengerTrain extends Train {
         return name;
     }
 
-    public List<City> getNeighbours() {
+    public List<City> getRoute() {
         return route;
     }
 

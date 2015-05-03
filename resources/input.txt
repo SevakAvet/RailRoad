@@ -1,0 +1,13 @@
+size 500 350
+
+city Saratov 100 100
+city Samara 200 200
+city Moscow 300 300
+
+neighbours Saratov Samara Moscow
+neighbours Samara Saratov Moscow
+neighbours Moscow Saratov Samara
+
+train passenger 137Æ 100 Saratov Samara Moscow
+train passenger 009Æ 120 Saratov Moscow
+train freight 50

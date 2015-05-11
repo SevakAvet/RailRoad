@@ -84,8 +84,6 @@ public class Main extends Application {
             });
         }
 
-        System.out.println(cities);
-
         launch(args);
     }
 
@@ -159,16 +157,55 @@ public class Main extends Application {
         return sqrt(dx * dx + dy * dy) / v;
     }
 
+    private List<City> generateRandomRoute(int n) {
+        List<City> route = new ArrayList<>();
+
+        City cur = cities.get((int) (Math.random() * (cities.size() - 1)));
+        route.add(cur);
+
+        for (int i = 0; i < n - 1; i++) {
+            cur = cur.getNeighbours().get((int) (Math.random() * (cur.getNeighbours().size() - 1)));
+            route.add(cur);
+        }
+
+        return route;
+    }
+
     private Transition createFreightPath(FreightTrain train) {
+        List<City> route = generateRandomRoute(1 + (int) (Math.random() * (cities.size() - 2)));
         Path path = new Path();
+
+        path.getElements().add(new MoveTo(route.get(0).getX(), route.get(0).getY()));
+
+        double time = 0;
+        for (int i = 1; i < route.size(); ++i) {
+            City from = route.get(i - 1);
+            City to = route.get(i);
+            time += calculateTime(from, to, train.getSpeed());
+
+            path.getElements().add(new LineTo(to.getX(), to.getY()));
+        }
+
+        Rectangle rectangle = new Rectangle(8, 7, Color.BLACK);
+        root.getChildren().add(rectangle);
+        trainRectangles.put(train, rectangle);
+
         PathTransition transition = new PathTransition();
+        transition.setDuration(Duration.seconds(time));
+        transition.setPath(path);
+        transition.setNode(rectangle);
+        transition.setCycleCount(1);
+        transition.setOnFinished(e -> root.getChildren().remove(rectangle));
+        trainTransitions.put(train, transition);
+
         return transition;
     }
 
     @Override
     public void start(Stage stage) throws Exception {
         root = new Group();
-        stage.setScene(new Scene(root, width, height));
+        Scene scene = new Scene(root, width, height);
+        stage.setScene(scene);
         stage.setResizable(false);
         stage.show();
 
@@ -197,7 +234,14 @@ public class Main extends Application {
             });
         }));
 
+        Timeline createFreightTrains = new Timeline(new KeyFrame(Duration.millis(3000), event -> {
+            FreightTrain freightTrain = new FreightTrain(50 + Math.random() * 20);
+            getPath(freightTrain).play();
+        }));
+
         checkCollisions.setCycleCount(Timeline.INDEFINITE);
         checkCollisions.play();
+        createFreightTrains.setCycleCount(Animation.INDEFINITE);
+        createFreightTrains.play();
     }
 }

@@ -29,13 +29,13 @@ public class Main extends Application {
     private static List<Train> passengersTrains;
 
     public static void main(String[] args) throws IOException {
-        initialize();
+        initialize(args[0]);
         launch(args);
     }
 
-    private static void initialize() {
+    private static void initialize(String file) {
         try {
-            parse("resources/input.txt");
+            parse(file);
             width = Parser.getWidth();
             height = Parser.getHeight();
             cities = Parser.getCities();

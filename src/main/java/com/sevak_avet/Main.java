@@ -29,6 +29,11 @@ public class Main extends Application {
     private static List<Train> passengersTrains;
 
     public static void main(String[] args) throws IOException {
+        if(args.length == 0) {
+            System.out.println("Please, provide path to your input file.");
+            System.exit(0);
+        }
+
         initialize(args[0]);
         launch(args);
     }

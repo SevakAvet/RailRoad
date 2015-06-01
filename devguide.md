@@ -1,5 +1,5 @@
-#RailRoad
-#Руководство разработчика
+##RailRoad
+##Руководство разработчика
 
 * [Описание проекта](#descriprion)
 * [Используемые технологии](#technologies)
@@ -14,7 +14,7 @@
 * [Автор](#author)
     
 <a name="descriprion"></a>
-#Описание проекта
+##Описание проекта
 
 Целью данного проекта является симуляция железной дороги. Поезда бывают 2 типов: пассажирские и грузовые.
 Поезда первого типа следуют строго заданному маршруту, в то время как поезда второго типа генерируются случайным
@@ -24,14 +24,14 @@
 т.е. два или более поездов встречаются в одном городе, то симуляция для них заканчивается.
 
 <a name="technologies"></a>
-#Используемые технологии
+##Используемые технологии
 * **Java 8** (**JavaFX** - встроенная графическая библиотека)
 * **Maven** - система сборки java-проектов
 
 <a name="main_classes"></a>
-#Основные классы проекта
+##Основные классы проекта
 <a name="domain"></a>
-#Классы предметной области
+##Классы предметной области
 
 Основным классом предметной области является абстрактный класс **Train**:
 ```java
@@ -189,7 +189,7 @@ Train freightTrain = new FreightTrain(speed);
 Если в списке соседей города A есть город B, то в списке соседей города B **ОБЯЗАТЕЛЬНО** должен быть город A.
 
 <a name="parse"></a>
-#Разбор входного файла
+##Разбор входного файла
 Для разбора входного файла используется класс **Parser**. Основным методом в этом классе является метод **parse**, который разбирает входной файл, заполняя необходимые поля, к которым есть доступ с помощью геттеров.
 
 Во входном файле могут встречаться следующие инструкции:
@@ -199,15 +199,97 @@ Train freightTrain = new FreightTrain(speed);
 * **train passenger name speed route** - пассажирский поезд, задаваемый своим именем, скоростью и маршрутом
 * **train freight speed** - грузовой поезд, задаваемый своей скоростью
 
+#Пример входного файла
+```
+size 410 410
+
+city Saratov 100 200
+city Voronezh 140 300
+city Samara 200 200
+city Moscow 200 100
+city Novgorod 300 100
+city Kazan 360 260
+
+neighbours Saratov Moscow Samara Voronezh
+neighbours Novgorod Moscow Voronezh Kazan
+neighbours Samara Saratov Moscow Kazan
+neighbours Moscow Saratov Samara Novgorod
+neighbours Kazan Samara Novgorod
+neighbours Voronezh Saratov Novgorod
+
+train passenger 137 60 Moscow Samara Saratov
+train passenger 009 100 Novgorod Moscow Saratov Voronezh
+train passenger 003 80 Kazan Samara Moscow Novgorod
+
+train freight 50
+```
+
+#Пример использования
+```java
+try {
+   Parser.parse("input.txt");
+   int width = Parser.getWidth();
+   int height = Parser.getHeight();
+   List<City> cities = Parser.getCities();
+   List<Train> passengersTrains = Parser.getPassengersTrains();
+   List<Train> freightTrains = Parser.getFreightTrains();
+} catch (IOException e) {
+   e.printStackTrace();
+}
+```
+
+После разбора входного файла с помощью метода **parse** можно получить разобранные данные через статические методы доступа к полям, таким как ширина и высота окна (**width**, **height**), списку городов (**cities**), а так же списку пассажирских (**passengersTrains**) и грузовых (**freightTrains**) поездов.
+
 <a name="draw"></a>
-#Класс для отрисовки
+##Класс для отрисовки
 
 За отрисовку отвечает класс **Drawer**. У него есть следующие методы:
 * **drawCity** - рисует город в виде окружности в координатах, содержащихся в переданном объекте
 * **drawRailRoad** - рисует железную дорогу в виде отрезка между переданным городом и его соседями
 
+```java
+public static void drawCity(City city) {
+   Label cityName = new Label(city.getName());
+   cityName.setLayoutX(city.getX() - R);
+   cityName.setLayoutY(city.getY() - 2 * R);
+
+   Circle cityCircle = new Circle(city.getX(), city.getY(), R);
+   cityCircle.setFill(Color.GREENYELLOW);
+   root.getChildren().addAll(cityName, cityCircle);
+}
+
+public static void drawRailRoad(City city) {
+   city.getNeighbours().forEach(x -> {
+      Line line = new Line(city.getX(), city.getY(), x.getX(), x.getY());
+      line.setStrokeWidth(2);
+      root.getChildren().add(line);
+   });
+}
+```
+
+В методе **drawCity**, который принимает город, создается текстовое поле с именем этого города (**cityName**), окружность, которая представляет наш город (**cityCircle**), далее оба объекта добавляются на рабочую область и становятся видимыми для пользователя.
+
+В методе **drawRailRoad**, который принимает город, мы проходимся по всем соседям нашего исходного города и рисуем "железнодорожные пути" - линии, начинающиеся в текущем городе и заканчивающиеся в соседнем. Далее эти линии добавляются на рабочую область, аналогично созданию городов.
+
+#Пример использования
+```java
+City saratov = new City("Saratov", 100, 100);
+City samara = new City("Samara", 200, 200);
+City volgograd = new City("Volgograd", 250, 400);
+
+Drawer.drawCity(saratov);
+Drawer.drawCity(samara);
+Drawer.drawCity(volgograd);
+
+Drawer.drawRailRoad(saratov);
+Drawer.drawRailRoad(samara);
+Drawer.drawRailRoad(volgograd);
+```
+
+В данном примере создается 3 города: Саратов, Самара, Волгоград, а дальше вызываются методы **drawCity** и **drawRailRoad** для отрисовки города и железной дороги соотвественно.
+
 <a name="animate"></a>
-#Классы для создания анимации
+##Классы для создания анимации
 Для создания анимации используется два класса: **Timelines** и **Transitions**.
 Класс **Transitions** содержит следующие методы:
 * **getPath** - возвращает путь в виде совокупности прямых, в зависимости от типа переданного поезда
@@ -218,16 +300,72 @@ Train freightTrain = new FreightTrain(speed);
 
 Класс **Timelines** используется для создания с какой-то перидоичностью грузовых поездов и запуска для них анимации. Для этого используется объект **createFreightTrains**, который случайным образом создает грузовой поезд и запускает для него анимацию.
 
+#Пример использования
+```java
+List<Train> passengersTrains = Parser.getPassengersTrains();
+passengersTrains.forEach(x -> Transitions.getPath(x).play());
+```
+
+В данном примере после разбора входного файла получается список пассажирских поездов, а затем для каждого поезда с помощью статического метода **getPath**, получается анимация пути, которая запускается с помощью метода **play**.
+
+```java
+public static Timeline createFreightTrains = new Timeline(new KeyFrame(Duration.millis(3000), event -> {
+        if((int) (Math.random() * 50) % 2 == 0) {
+            FreightTrain freightTrain = new FreightTrain(50 + Math.random() * 20);
+            getPath(freightTrain).play();
+        } else {
+            getPath(freightTrains.get((int) (Math.random() * (freightTrains.size() - 1)))).play();
+        }
+    }));
+    
+    ...
+    
+    Timelines.createFreightTrains.play();
+```
+
+Данный код генерирует каждые 3 секунды грузовой поезд со случайной скоростью от 50 до 70 км/ч, или же выбирает случайный поезд и списка грузовых поездов, описанных во входном файле, далее с помощью метода **Transitions.getPath** получается анимация пути, которая запускается с помощью метода **play**.
+
 <a name="collision"></a>
-#Проверка на столкновения
+##Проверка на столкновения
 Так же в классе **Timelines** есть объект, который с какой-то периодичностью проверяет, не столкнулись ли несколько поездов в одном городе. Этот объект называется **checkCollisions**. При вызове метода **play** у данного объекта запустится алгоритм, который и будет выполнять всю работу.
 
+#Пример использования
+
+```java
+public static Timeline checkCollisions = new Timeline(new KeyFrame(Duration.millis(50), event -> {
+        passengersTrains.stream().forEach(x -> {
+            Rectangle rectangle = getTrainRectangles().get(x);
+
+            passengersTrains.stream().forEach(y -> {
+                Rectangle cur = getTrainRectangles().get(y);
+
+                if (rectangle != cur) {
+                    Shape intersect = Rectangle.intersect(rectangle, cur);
+                    if (intersect.getBoundsInLocal().getWidth() != -1) {
+                        rectangle.setFill(Color.RED);
+                        cur.setFill(Color.RED);
+
+                        getTrainTransitions().get(x).stop();
+                        getTrainTransitions().get(y).stop();
+                    }
+                }
+            });
+        });
+    }));
+    
+    ...
+    
+    Timelines.checkCollisions.play();
+```
+
+Данный код каждый 50мс перебирает все пары поездов, получает прямоугольники, которые являются представлением наших поездов в приложении, а дальше проверяет с помощью встроенного метода **Rectangle.intersect**, по которой можно определить, пересекаются ли прямоугольники (а, соответственно, поезда) или нет. Если пересекаются, то анимация для данных поездов останавливается, т.к. поезда столкнулись.
+
 <a name="run"></a>
-#Запуск проекта
+##Запуск проекта
 Для запуска проекта используется основной класс - **Main**, в нем запускается метод для разбора входного файла, создаются все формы, отрисовываются города и железные дороги, и, в конце концов, запускаются анимации для пассажирских и грузовых поездов, а так же алгоритм проверки коллизий. 
 
 <a name="build"></a>
-#Сборка проекта
+##Сборка проекта
 Для сборки проекта используется **Maven** - система сборки java-проектов. Основная конфигурация находится в файле **pom.xml**. В секции **plugins** указано два плагина - один для компиляции проекта, второй - для сборки исполняемого файла.
 
 Для запуска процесса сборки необходимо выполнить следующую команду:

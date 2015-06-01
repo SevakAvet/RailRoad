@@ -165,6 +165,29 @@ public class City {
 * **name** - имя города
 * **neighbours** - список соседних для данного города городов
 
+#Пример использования
+```java
+double speed = 50.0;
+String name = "train name";
+City saratov = new City("Saratov", 100, 100);
+City samara = new City("Samara", 200, 200);
+City volgograd = new City("Volgograd", 250, 400);
+
+saratov.setNeighbours(Arrays.asList(samara, volgogrdad));
+samara.setNeighbours(Arrays.asList(saratov, volgograd));
+volgograd.setNeighbours(Arrays.asList(saratov, samara));
+
+List<City> route = Arrays.asList(saratov, samara, volgograd);
+Train passengerTrain = new PassengerTrain(speed, name, route);
+Train freightTrain = new FreightTrain(speed);
+```
+
+В данном примере создается следующий список городов: Саратов (координаты 100, 100, соседи: Самара, Волгоград), Самара (200, 200, соседи: Саратов, Волгоград), Волгоград (250, 400, соседи: Саратов, Самара). С помощью этого списка создается маршрут route Саратов -> Самара -> -Волгоград -> Саратов, далее создается пассажирский поезд **passengerTrain**, который имеет имя "train name" и скорость 50км/ч, а так же грузовой поезд, который имеет скорость 50км/ч.
+
+***!!!ВАЖНО!!!***
+
+Если в списке соседей города A есть город B, то в списке соседей города B **ОБЯЗАТЕЛЬНО** должен быть город A.
+
 <a name="parse"></a>
 #Разбор входного файла
 Для разбора входного файла используется класс **Parser**. Основным методом в этом классе является метод **parse**, который разбирает входной файл, заполняя необходимые поля, к которым есть доступ с помощью геттеров.
